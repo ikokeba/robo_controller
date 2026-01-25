@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RT-StackChan Controller</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>StackChan Controller</h1>
+            <div id="connection-status" class="status disconnected">Disconnected</div>
+        </header>
+
+        <main>
+            <!-- Control Pad Section -->
+            <section class="control-panel">
+                <h2>Head Control</h2>
+                <div class="pad-container">
+                    <div id="touch-pad" class="touch-pad">
+                        <div id="cursor" class="cursor"></div>
+                        <div class="grid-line horizontal"></div>
+                        <div class="grid-line vertical"></div>
+                    </div>
+                </div>
+                <div class="coordinates">
+                    Pan: <span id="pan-val">0</span>, Tilt: <span id="tilt-val">0</span>
+                </div>
+            </section>
+
+            <!-- Expressions Section -->
+            <section class="expressions-panel">
+                <h2>Expressions</h2>
+                <div class="expression-grid">
+                    <button class="expr-btn" data-expr="happy">😊 Happy</button>
+                    <button class="expr-btn" data-expr="sad">😢 Sad</button>
+                    <button class="expr-btn" data-expr="angry">😠 Angry</button>
+                    <button class="expr-btn" data-expr="sleepy">😴 Sleepy</button>
+                    <button class="expr-btn" data-expr="neutral">😐 Neutral</button>
+                </div>
+            </section>
+
+            <!-- Speech Section -->
+            <section class="speech-panel">
+                <h2>Speech</h2>
+                <div class="input-group">
+                    <input type="text" id="speech-input" placeholder="Enter text to speak...">
+                    <button id="send-speech-btn">Send</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
