@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket = null;
     let wsConnected = false;
     let robotConnected = false;
+    let pendingRobotReconnect = false;
 
     function renderConnectionStatus(stateText, isConnected, isReconnectEnabled) {
         statusDiv.textContent = stateText;
@@ -45,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.onopen = () => {
             wsConnected = true;
             updateStatusDisplay('open');
+            if (pendingRobotReconnect) {
+                pendingRobotReconnect = false;
+                sendAction('reconnect');
+            }
         };
 
         socket.onclose = () => {
@@ -72,6 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     reconnectBtn.addEventListener('click', () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            sendAction('reconnect');
+            return;
+        }
+        pendingRobotReconnect = true;
         connectSocket();
     });
 

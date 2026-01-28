@@ -70,6 +70,13 @@ async def websocket_endpoint(websocket: WebSocket):
             
             elif action_type == "say":
                 await robot.speak(text=payload.get("val"))
+
+            elif action_type == "reconnect":
+                await robot.reconnect()
+                await websocket.send_json({
+                    "type": "status",
+                    "data": {"robot_connected": robot.connected}
+                })
             
             # Echo back status if needed, or acknowledge
             # await websocket.send_text(f"Processed {action_type}")

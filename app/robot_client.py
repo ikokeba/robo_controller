@@ -12,6 +12,14 @@ class RobotClient:
         self.logger = logging.getLogger("RobotClient")
 
     async def connect(self):
+        if self.connected and self.writer and not self.writer.is_closing():
+            return True
+        if self.writer:
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()
+            except Exception:
+                pass
         try:
             self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
             self.connected = True
@@ -23,6 +31,10 @@ class RobotClient:
             self.reader = None
             self.writer = None
             return False
+
+    async def reconnect(self):
+        await self.disconnect()
+        return await self.connect()
 
     async def disconnect(self):
         if self.writer:
