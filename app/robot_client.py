@@ -20,14 +20,26 @@ class RobotClient:
         except Exception as e:
             self.logger.error(f"Failed to connect to robot: {e}")
             self.connected = False
+            self.reader = None
+            self.writer = None
             return False
 
     async def disconnect(self):
         if self.writer:
             self.writer.close()
             await self.writer.wait_closed()
+        self.connected = False
+        self.reader = None
+        self.writer = None
+        self.logger.info("Disconnected from Robot")
+
+    async def refresh_connection_state(self):
+        if not self.reader or not self.writer:
             self.connected = False
-            self.logger.info("Disconnected from Robot")
+            return
+        if self.writer.is_closing() or self.reader.at_eof():
+            await self.disconnect()
+            return
 
     async def send_command(self, cmd_type: str, **kwargs):
         if not self.connected:
@@ -46,7 +58,7 @@ class RobotClient:
             self.logger.debug(f"Sent: {message.strip()}")
         except Exception as e:
             self.logger.error(f"Error sending data: {e}")
-            self.connected = False
+            await self.disconnect()
 
     async def move(self, pan: float, tilt: float):
         await self.send_command("move", pan=pan, tilt=tilt)

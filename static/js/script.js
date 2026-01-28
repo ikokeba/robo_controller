@@ -2,28 +2,84 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- WebSocket Setup ---
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const wsUrl = `${protocol}://${window.location.host}/ws`;
-    const socket = new WebSocket(wsUrl);
     const statusDiv = document.getElementById('connection-status');
+    const reconnectBtn = document.getElementById('reconnect-btn');
+    let socket = null;
+    let wsConnected = false;
+    let robotConnected = false;
 
-    socket.onopen = () => {
-        statusDiv.textContent = 'Connected';
-        statusDiv.classList.remove('disconnected');
-        statusDiv.classList.add('connected');
-    };
-
-    socket.onclose = () => {
-        statusDiv.textContent = 'Disconnected';
+    function renderConnectionStatus(stateText, isConnected, isReconnectEnabled) {
+        statusDiv.textContent = stateText;
         statusDiv.classList.remove('connected');
-        statusDiv.classList.add('disconnected');
-    };
+        statusDiv.classList.remove('disconnected');
+        statusDiv.classList.add(isConnected ? 'connected' : 'disconnected');
+        reconnectBtn.disabled = !isReconnectEnabled;
+    }
 
-    socket.onerror = (error) => {
-        console.error('WebSocket Error:', error);
-    };
+    function updateStatusDisplay(state) {
+        if (state === 'connecting') {
+            renderConnectionStatus('Connecting...', false, false);
+            return;
+        }
+        if (!wsConnected) {
+            renderConnectionStatus('Disconnected', false, true);
+            return;
+        }
+        if (robotConnected) {
+            renderConnectionStatus('Connected', true, false);
+            return;
+        }
+        renderConnectionStatus('Robot Disconnected', false, true);
+    }
+
+    function connectSocket() {
+        if (socket) {
+            if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+                return;
+            }
+        }
+
+        updateStatusDisplay('connecting');
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            wsConnected = true;
+            updateStatusDisplay('open');
+        };
+
+        socket.onclose = () => {
+            wsConnected = false;
+            robotConnected = false;
+            updateStatusDisplay('closed');
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket Error:', error);
+        };
+
+        socket.onmessage = (event) => {
+            let message = null;
+            try {
+                message = JSON.parse(event.data);
+            } catch (e) {
+                return;
+            }
+            if (message.type === 'status' && message.data) {
+                robotConnected = Boolean(message.data.robot_connected);
+                updateStatusDisplay('status');
+            }
+        };
+    }
+
+    reconnectBtn.addEventListener('click', () => {
+        connectSocket();
+    });
+
+    connectSocket();
 
     // --- Helper to send JSON ---
     function sendAction(type, data) {
-        if (socket.readyState === WebSocket.OPEN) {
+        if (socket && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ type, data }));
         }
     }

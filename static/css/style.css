@@ -36,6 +36,12 @@ header {
     padding-bottom: 10px;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 h1 {
     font-size: 1.5rem;
     font-weight: 500;
@@ -65,6 +71,30 @@ h2 {
 .status.disconnected {
     background-color: #b71c1c;
     color: #ef5350;
+}
+
+.reconnect-btn {
+    background-color: #333;
+    color: var(--text-color);
+    border: 1px solid #444;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.reconnect-btn:hover:enabled {
+    background-color: #444;
+}
+
+.reconnect-btn:active:enabled {
+    transform: scale(0.98);
+}
+
+.reconnect-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 section {

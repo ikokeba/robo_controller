@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -37,7 +38,22 @@ async def get(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    status_task = None
     try:
+        async def send_status_updates():
+            last_state = None
+            while True:
+                await robot.refresh_connection_state()
+                current_state = robot.connected
+                if current_state != last_state:
+                    await websocket.send_json({
+                        "type": "status",
+                        "data": {"robot_connected": current_state}
+                    })
+                    last_state = current_state
+                await asyncio.sleep(1)
+
+        status_task = asyncio.create_task(send_status_updates())
         while True:
             data = await websocket.receive_json()
             # Bridge WebSocket data to Robot TCP Client
@@ -62,3 +78,6 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info("Client disconnected")
     except Exception as e:
         logger.error(f"WebSocket Error: {e}")
+    finally:
+        if status_task:
+            status_task.cancel()
