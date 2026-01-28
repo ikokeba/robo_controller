@@ -3,34 +3,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const wsUrl = `${protocol}://${window.location.host}/ws`;
     const statusDiv = document.getElementById('connection-status');
-    const reconnectBtn = document.getElementById('reconnect-btn');
+    const connectBtn = document.getElementById('connect-btn');
+    const disconnectBtn = document.getElementById('disconnect-btn');
     let socket = null;
     let wsConnected = false;
     let robotConnected = false;
-    let pendingRobotReconnect = false;
-
-    function renderConnectionStatus(stateText, isConnected, isReconnectEnabled) {
+    let pendingRobotConnect = false;
+    function renderConnectionStatus(stateText, statusClass, isConnectEnabled, isDisconnectEnabled) {
         statusDiv.textContent = stateText;
-        statusDiv.classList.remove('connected');
-        statusDiv.classList.remove('disconnected');
-        statusDiv.classList.add(isConnected ? 'connected' : 'disconnected');
-        reconnectBtn.disabled = !isReconnectEnabled;
+        statusDiv.classList.remove('connected', 'disconnected', 'connecting');
+        statusDiv.classList.add(statusClass);
+        connectBtn.disabled = !isConnectEnabled;
+        disconnectBtn.disabled = !isDisconnectEnabled;
     }
 
     function updateStatusDisplay(state) {
-        if (state === 'connecting') {
-            renderConnectionStatus('Connecting...', false, false);
+        const isWsConnecting = socket && socket.readyState === WebSocket.CONNECTING;
+        if (state === 'connecting' || state === 'reconnecting' || isWsConnecting) {
+            renderConnectionStatus('Connecting to server...', 'connecting', false, false);
             return;
         }
         if (!wsConnected) {
-            renderConnectionStatus('Disconnected', false, true);
+            renderConnectionStatus('Server Disconnected', 'disconnected', true, false);
             return;
         }
         if (robotConnected) {
-            renderConnectionStatus('Connected', true, false);
+            renderConnectionStatus('Connected', 'connected', false, true);
             return;
         }
-        renderConnectionStatus('Robot Disconnected', false, true);
+        if (pendingRobotConnect) {
+            renderConnectionStatus('Robot Connecting...', 'connecting', false, false);
+            return;
+        }
+        renderConnectionStatus('Robot Disconnected', 'disconnected', true, false);
     }
 
     function connectSocket() {
@@ -46,9 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.onopen = () => {
             wsConnected = true;
             updateStatusDisplay('open');
-            if (pendingRobotReconnect) {
-                pendingRobotReconnect = false;
-                sendAction('reconnect');
+            if (pendingRobotConnect) {
+                pendingRobotConnect = false;
+                sendAction('connect');
             }
         };
 
@@ -60,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         socket.onerror = (error) => {
             console.error('WebSocket Error:', error);
+            updateStatusDisplay('error');
         };
 
         socket.onmessage = (event) => {
@@ -71,18 +77,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (message.type === 'status' && message.data) {
                 robotConnected = Boolean(message.data.robot_connected);
+                pendingRobotConnect = false;
                 updateStatusDisplay('status');
             }
         };
     }
 
-    reconnectBtn.addEventListener('click', () => {
+    connectBtn.addEventListener('click', () => {
         if (socket && socket.readyState === WebSocket.OPEN) {
-            sendAction('reconnect');
+            sendAction('connect');
             return;
         }
-        pendingRobotReconnect = true;
+        pendingRobotConnect = true;
         connectSocket();
+    });
+
+    disconnectBtn.addEventListener('click', () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            sendAction('disconnect');
+        }
     });
 
     connectSocket();

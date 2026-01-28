@@ -13,3 +13,12 @@
 ## 2026-01-28 16:09:24
 - Made robot reconnect force-close stale sockets before opening a new one.
 - Send immediate status update after reconnect attempts.
+## 2026-01-28 22:17:57
+- Added connect/disconnect buttons and manual control wiring.
+- Updated button enable state based on robot connection status.
+## 2026-01-28 22:33:01
+- Updated connection status to reflect WebSocket reconnecting state.
+- Added auto-reconnect behavior when the server disconnects.
+## 2026-01-28 22:34:29
+- Removed auto-reconnect behavior for WebSocket.
+- Kept connection status updates tied to live WebSocket/robot state.

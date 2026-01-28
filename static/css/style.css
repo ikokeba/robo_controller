@@ -73,7 +73,14 @@ h2 {
     color: #ef5350;
 }
 
-.reconnect-btn {
+.status.connecting {
+    background-color: #5f4b00;
+    color: #ffd54f;
+}
+
+.action-btn,
+.connect-btn,
+.disconnect-btn {
     background-color: #333;
     color: var(--text-color);
     border: 1px solid #444;
@@ -84,17 +91,35 @@ h2 {
     transition: background-color 0.2s, transform 0.1s;
 }
 
-.reconnect-btn:hover:enabled {
+.action-btn:hover:enabled {
     background-color: #444;
 }
 
-.reconnect-btn:active:enabled {
+.action-btn:active:enabled {
     transform: scale(0.98);
 }
 
-.reconnect-btn:disabled {
+.action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.connect-btn {
+    background-color: #1b5e20;
+    border-color: #2e7d32;
+}
+
+.connect-btn:hover:enabled {
+    background-color: #2e7d32;
+}
+
+.disconnect-btn {
+    background-color: #b71c1c;
+    border-color: #c62828;
+}
+
+.disconnect-btn:hover:enabled {
+    background-color: #c62828;
 }
 
 section {

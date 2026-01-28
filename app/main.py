@@ -77,6 +77,20 @@ async def websocket_endpoint(websocket: WebSocket):
                     "type": "status",
                     "data": {"robot_connected": robot.connected}
                 })
+
+            elif action_type == "connect":
+                await robot.connect()
+                await websocket.send_json({
+                    "type": "status",
+                    "data": {"robot_connected": robot.connected}
+                })
+
+            elif action_type == "disconnect":
+                await robot.disconnect()
+                await websocket.send_json({
+                    "type": "status",
+                    "data": {"robot_connected": robot.connected}
+                })
             
             # Echo back status if needed, or acknowledge
             # await websocket.send_text(f"Processed {action_type}")
